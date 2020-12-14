@@ -35,6 +35,11 @@
   $account['max_active_deals_long'] = 10;
   // Max Short Deals
   $account['max_active_deals_short'] = 8;
+  // Blacklist, to ignore Bots (regex)
+  $account['blacklist'] = 'BTC';
+  // Ignore activated TTP bots
+  $account['ignoreactivatedttp'] = true;
+
   $config['accounts'][] = $account;
   unset($account);
 
@@ -44,6 +49,7 @@
   $account['max_active_deals'] = 20;
   $account['max_active_deals_long'] = 12;
   $account['max_active_deals_short'] = 14;
+
   $config['accounts'][] = $account;
   unset($account);
 
@@ -53,5 +59,6 @@
   $account['max_active_deals'] = 8;
   $account['max_active_deals_long'] = 8;
   $account['max_active_deals_short'] = 8;
+
   $config['accounts'][] = $account;
   unset($account);

@@ -189,6 +189,55 @@
       return null;
     }
 
+    function getdealsV1($aParams) {
+      $searchstring = '';
+      if (isset($aParams['limit'])) {
+        if ($searchstring != '') $searchstring .= '&';
+        $searchstring .= sprintf('limit=%d', $aParams['limit']);
+      }
+      if (isset($aParams['offset'])) {
+        if ($searchstring != '') $searchstring .= '&';
+        $searchstring .= sprintf('offset=%d', $aParams['offset']);
+      }
+      if (isset($aParams['account_id'])) {
+        if ($searchstring != '') $searchstring .= '&';
+        $searchstring .= sprintf('account_id=%d', $aParams['account_id']);
+      }
+      if (isset($aParams['bot_id'])) {
+        if ($searchstring != '') $searchstring .= '&';
+        $searchstring .= sprintf('bot_id=%d', $aParams['bot_id']);
+      }
+      if (isset($aParams['scope'])) {
+        if ($searchstring != '') $searchstring .= '&';
+        $searchstring .= sprintf('scope=%s', $aParams['scope']);
+      }
+      if (isset($aParams['order'])) {
+        if ($searchstring != '') $searchstring .= '&';
+        $searchstring .= sprintf('order=%s', $aParams['order']);
+      }
+
+      return($this->get(sprintf("/ver1/deals?%s", $searchstring)));
+    }
+
+    function getActiveDealFromBot($aBot, $aDeals = null) {
+      assert(!isset($aBot));
+      assert(!isset($aBot['id']));
+
+      if ($aDeals == null) {
+        $params['bot_id'] = $aBot['id'];
+        $aDeals[] = $this->getdealsV1($params);
+      }
+
+      if (isset($aDeals[0]) && isset($aDeals[0]['id'])) {
+        foreach ($aDeals as $deal) {
+          if ($deal['bot_id'] == $aBot['id']) {
+            return $deal;
+          }
+        }
+      }
+      return null;
+    }
+
     function getAccountData($account_id) {
       $return = $this->get(sprintf("/ver1/accounts/%s/account_table_data", $account_id), 'POST');
 

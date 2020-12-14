@@ -29,12 +29,36 @@
     exit;
   }
 
+  function is_blacklisted($aBot, $aBlacklist) {
+    $returnvalue = false;
+    if ($aBlacklist != '') {
+      if (isset($aBot['name'])) {
+        $returnvalue = preg_match(sprintf("/%s/", $aBlacklist), $aBot['name']) == 1;
+      }
+    }
+    return $returnvalue;
+  }
+
   $commas = new threecommasapi;
   $commas->setConfig($config);
 
   foreach ($config['accounts'] as $account) {
+    $botblacklist = '';
+    if (isset($account['blacklist'])) {
+      $botblacklist = $account['blacklist'];
+    }
+
+    $deals = array();
+    if (isset($account['ignoreactivatedttp']) && $account['ignoreactivatedttp']) {
+      $commas->DebugOutput(sprintf('[%s] Looking for deals...', $account['name']));
+      $DealsParams = array();
+      $DealsParams['account_id'] = $account['3commasid'];
+      $DealsParams['scope'] = 'active';
+      $deals = $commas->getdealsV1($DealsParams);
+    }
 
     $commas->DebugOutput(sprintf('[%s] Looking for bots...', $account['name']));
+
     $postdata['account_id'] = $account['3commasid'];
     // (Permission: BOTS_READ, Security: SIGNED)
     $url = sprintf("/ver1/bots");
@@ -43,18 +67,28 @@
     $counter['long'] = 0;
     $counter['short'] = 0;
     foreach ($botsdata as $bot) {
-      if ($bot['active_deals_count'] == 1) {
-        if ($bot['strategy'] == 'long') {
-          $counter['long']++;
-        } else {
-          $counter['short']++;
+      if (isset($account['ignoreactivatedttp']) && $account['ignoreactivatedttp']) {
+        $activedeal = $commas->getActiveDealFromBot($bot, $deals);
+        if (isset($activedeal)) {
+          if ($activedeal['status'] == 'ttp_activated') {
+            continue;
+          }
+        }
+      }
+      if (!is_blacklisted($bot, $botblacklist)) {
+        if ($bot['active_deals_count'] == 1) {
+          if ($bot['strategy'] == 'long') {
+            $counter['long']++;
+          } else {
+            $counter['short']++;
+          }
         }
       }
     }
 
-    $max_active_deals = 0;
-    $max_active_deals_long = 0;
-    $max_active_deals_short = 0;
+    $max_active_deals = 999;
+    $max_active_deals_long = 999;
+    $max_active_deals_short = 999;
     if (isset($account['max_active_deals']) && is_numeric($account['max_active_deals'])) {
       $max_active_deals = $account['max_active_deals'];
     }
@@ -71,36 +105,37 @@
       $counter['long'], $max_active_deals_long,
       $counter['short'], $max_active_deals_short));
 
-    $commas->DebugOutput(sprintf('[%s] Looking for bots...', $account['name']));
+    $commas->DebugOutput(sprintf('[%s] Looking for bot status...', $account['name']));
     foreach ($botsdata as $bot) {
-
-      $setstate = false;
-      if ($counter['long'] + $counter['short'] < $max_active_deals) {
-        if ($bot['strategy'] == 'long') {
-          if ($counter['long'] < $max_active_deals_long) {
-            $setstate = true;
-          }
-        } else {
-          if ($counter['short'] < $max_active_deals_short) {
-            $setstate = true;
+      if (!is_blacklisted($bot, $botblacklist)) {
+        $setstate = false;
+        if ($counter['long'] + $counter['short'] < $max_active_deals) {
+          if ($bot['strategy'] == 'long') {
+            if ($counter['long'] < $max_active_deals_long) {
+              $setstate = true;
+            }
+          } else {
+            if ($counter['short'] < $max_active_deals_short) {
+              $setstate = true;
+            }
           }
         }
-      }
 
-      $commas->DebugOutput(sprintf('[%s] %s %s Bot id %s.',
-        $account['name'],
-        ($bot['strategy'] == 'long' ? 'Long ' : 'Short'),
-        ($setstate ? 'Enable ' : 'Disable'),
-        $bot['id']));
+        $commas->DebugOutput(sprintf('[%s] %s %s Bot id %s.',
+          $account['name'],
+          ($bot['strategy'] == 'long' ? 'Long ' : 'Short'),
+          ($setstate ? 'Enable ' : 'Disable'),
+          $bot['id']));
 
-      if ($bot['is_enabled'] != $setstate) {
-        if ($setstate) {
-          $url = sprintf("/ver1/bots/%s/enable", $bot['id']);
-        } else {
-          $url = sprintf("/ver1/bots/%s/disable", $bot['id']);
+        if ($bot['is_enabled'] != $setstate) {
+          if ($setstate) {
+            $url = sprintf("/ver1/bots/%s/enable", $bot['id']);
+          } else {
+            $url = sprintf("/ver1/bots/%s/disable", $bot['id']);
+          }
+          // Disable/Enable bot (Permission: BOTS_WRITE, Security: SIGNED)
+          $commas->get($url, 'POST');
         }
-        // Disable/Enable bot (Permission: BOTS_WRITE, Security: SIGNED)
-        $commas->get($url, 'POST');
       }
     }
   }
