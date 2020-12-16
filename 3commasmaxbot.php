@@ -3,7 +3,7 @@
   /***
    * 3commas max bot per Account
    * @author   xyvran@nwan.de
-   * @version  0.4 20201214
+   * @version  0.5 20201216
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -43,6 +43,19 @@
   $commas->setConfig($config);
 
   foreach ($config['accounts'] as $account) {
+
+    $disableall = false;
+    if (isset($account['usd_amount_min']) && $account['usd_amount_min'] > 0) {
+      $commas->DebugOutput(sprintf('[%s] Looking for account...', $account['name']), 2);
+      $accoutdetails = $commas->get(sprintf("/ver1/accounts/%s", $account['3commasid']), 'GET');
+      if (isset($accoutdetails['usd_amount'])) {
+        if ($accoutdetails['usd_amount'] < $account['usd_amount_min']) {
+          $commas->DebugOutput(sprintf('[%s] Disable all bots. Only %.2f$ from min %.2f$ left', $account['name'], $accoutdetails['usd_amount'], $account['usd_amount_min']));
+          $disableall = true;
+        }
+      }
+    }
+
     $botblacklist = '';
     if (isset($account['blacklist'])) {
       $botblacklist = $account['blacklist'];
@@ -50,14 +63,14 @@
 
     $deals = array();
     if (isset($account['ignoreactivatedttp']) && $account['ignoreactivatedttp']) {
-      $commas->DebugOutput(sprintf('[%s] Looking for deals...', $account['name']));
+      $commas->DebugOutput(sprintf('[%s] Looking for deals...', $account['name']), 2);
       $DealsParams = array();
       $DealsParams['account_id'] = $account['3commasid'];
       $DealsParams['scope'] = 'active';
       $deals = $commas->getdealsV1($DealsParams);
     }
 
-    $commas->DebugOutput(sprintf('[%s] Looking for bots...', $account['name']));
+    $commas->DebugOutput(sprintf('[%s] Looking for bots...', $account['name']), 2);
 
     $postdata['account_id'] = $account['3commasid'];
     // (Permission: BOTS_READ, Security: SIGNED)
@@ -105,29 +118,31 @@
       $counter['long'], $max_active_deals_long,
       $counter['short'], $max_active_deals_short));
 
-    $commas->DebugOutput(sprintf('[%s] Looking for bot status...', $account['name']));
+    $commas->DebugOutput(sprintf('[%s] Looking for bot status...', $account['name']), 2);
     foreach ($botsdata as $bot) {
       if (!is_blacklisted($bot, $botblacklist)) {
         $setstate = false;
-        if ($counter['long'] + $counter['short'] < $max_active_deals) {
-          if ($bot['strategy'] == 'long') {
-            if ($counter['long'] < $max_active_deals_long) {
-              $setstate = true;
-            }
-          } else {
-            if ($counter['short'] < $max_active_deals_short) {
-              $setstate = true;
+        if ($disableall == false) {
+          if ($counter['long'] + $counter['short'] < $max_active_deals) {
+            if ($bot['strategy'] == 'long') {
+              if ($counter['long'] < $max_active_deals_long) {
+                $setstate = true;
+              }
+            } else {
+              if ($counter['short'] < $max_active_deals_short) {
+                $setstate = true;
+              }
             }
           }
         }
 
-        $commas->DebugOutput(sprintf('[%s] %s %s Bot id %s.',
-          $account['name'],
-          ($bot['strategy'] == 'long' ? 'Long ' : 'Short'),
-          ($setstate ? 'Enable ' : 'Disable'),
-          $bot['id']));
-
         if ($bot['is_enabled'] != $setstate) {
+          $commas->DebugOutput(sprintf('[%s] %s %s Bot id %s.',
+            $account['name'],
+            ($bot['strategy'] == 'long' ? 'Long ' : 'Short'),
+            ($setstate ? 'Enable ' : 'Disable'),
+            $bot['id']), 2);
+
           if ($setstate) {
             $url = sprintf("/ver1/bots/%s/enable", $bot['id']);
           } else {
@@ -139,4 +154,4 @@
       }
     }
   }
-  $commas->DebugOutput('END!');
+  $commas->DebugOutput('END!', 2);

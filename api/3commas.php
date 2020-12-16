@@ -3,7 +3,7 @@
   /***
    * Class threecommasapi
    * @author   xyvran@nwan.de
-   * @version  0.3 20201214
+   * @version  0.5 20201216
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -59,9 +59,7 @@
     }
 
     function HMACSHA256($aQuery) {
-      $signature = hash_hmac('sha256', $this->apientryendpointurl . $aQuery, $this->secretKey);
-
-      return $signature;
+      return hash_hmac('sha256', $this->apientryendpointurl . $aQuery, $this->secretKey);
     }
 
     function check3CommasError($data) {
@@ -174,9 +172,7 @@
 
     function getdealV1($account_id, $deal_id, $scope = 'any') {
       if ($deal_id == null) {
-        $data = $this->get(sprintf("/ver1/deals?account_id=%s&scope=%s&order=closed_at&limit=200", $account_id, $scope));
-
-        return $data;
+        return $this->get(sprintf("/ver1/deals?account_id=%s&scope=%s&order=closed_at&limit=200", $account_id, $scope));
       } else {
         $data = $this->get(sprintf("/ver1/deals?account_id=%s&scope=%s&order=closed_at", $account_id, $scope));
       }

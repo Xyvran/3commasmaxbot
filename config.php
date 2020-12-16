@@ -2,7 +2,7 @@
   /***
    * 3commas config
    * @author   xyvran@nwan.de
-   * @version  0.4 20201214
+   * @version  0.5 20201216
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -14,8 +14,9 @@
    */
 
   // Show some more ;)
-  // 0  = cronjob
+  // 0  = cronjob / quite
   // 1  = some information
+  // 2  = some more output
   // 10 = curl debug
   $config['system']['debug'] = 1;
 
@@ -39,6 +40,9 @@
   $account['blacklist'] = 'BTC';
   // Ignore activated TTP bots
   $account['ignoreactivatedttp'] = true;
+  // USD minimum amount on account
+  // 0 = disabled
+  $account['usd_amount_min'] = 250;
 
   $config['accounts'][] = $account;
   unset($account);
