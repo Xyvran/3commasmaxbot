@@ -97,6 +97,23 @@
           }
         }
       }
+
+      // Panic sell option
+      if (isset($account['panicsellaftermissedtrailing']) && $account['panicsellaftermissedtrailing']) {
+        if (!is_blacklisted($bot, $botblacklist)) {
+          $activedeal = $commas->getActiveDealFromBot($bot, $deals);
+          if (isset($activedeal)) {
+            $commas->DebugOutput(sprintf('[%s] Panic sell check deal id %d...', $account['name'], $activedeal['id']), 2);
+            if ($activedeal['active_safety_orders_count'] == 0
+              && $activedeal['max_safety_orders'] > $activedeal['completed_safety_orders_count']
+              && $activedeal['status'] == 'bought') {
+              $commas->DebugOutput(sprintf('[%s] Panic sell deal id: %d  bot id: %d', $account['name'], $activedeal['id'], $bot['id']), 1);
+              $commas->DealPanicSell($activedeal);
+            }
+          }
+        }
+      }
+
     }
 
     $max_active_deals = 999;

@@ -43,6 +43,12 @@
   // USD minimum amount on account
   // 0 = disabled
   $account['usd_amount_min'] = 250;
+  // Panic sell after missed trailing in 3commas
+  // Something the trailing don't hit and reverted to "initial status". But there are no SO active anymore. Now we can
+  // panic sell. It's a market sell that hit the last SO if not all SOs were placed.
+  // Error Message from 3commas:
+  // The bot was unable to close the deal as the price moved below the profitable area too fast. The trailing has been disabled and the deal reverted to the initial status, now it is waiting for trailing activation condition again.
+  $account['panicsellaftermissedtrailing'] = false;
 
   $config['accounts'][] = $account;
   unset($account);

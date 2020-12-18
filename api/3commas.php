@@ -234,6 +234,14 @@
       return null;
     }
 
+    function DealPanicSell($aDeal) {
+      assert(!is_array($aDeal));
+      assert(!isset($aDeal['id']));
+      assert($aDeal['id'] <= 0);
+      // Panic sell deal (Permission: BOTS_WRITE, Security: SIGNED)
+      return($this->get(sprintf("/ver1/deals/%s/panic_sell", $aDeal['id']), 'POST'));
+    }
+
     function getAccountData($account_id) {
       $return = $this->get(sprintf("/ver1/accounts/%s/account_table_data", $account_id), 'POST');
 
