@@ -2,7 +2,7 @@
   /***
    * 3commas config
    * @author   xyvran@nwan.de
-   * @version  0.5 20201216
+   * @version  0.6 20201218
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -45,10 +45,21 @@
   $account['usd_amount_min'] = 250;
   // Panic sell after missed trailing in 3commas
   // Something the trailing don't hit and reverted to "initial status". But there are no SO active anymore. Now we can
-  // panic sell. It's a market sell that hit the last SO if not all SOs were placed.
+  // panic sell. This will also market sell deals that hit the last SO if not all SOs were placed, which normally only
+  // happens if there is not enough free collateral/margin balance to open all the safety orders.
   // Error Message from 3commas:
   // The bot was unable to close the deal as the price moved below the profitable area too fast. The trailing has been disabled and the deal reverted to the initial status, now it is waiting for trailing activation condition again.
   $account['panicsellaftermissedtrailing'] = false;
+  // Dynamic Safety Orders
+  $account['dynamicsafetyorders'] = array(
+    array('so' => 0, 'tp' => 0.1, 'activettp' => true,  'trailing' => 0.05),
+    array('so' => 1, 'tp' => 0.2, 'activettp' => true,  'trailing' => 0.1),
+    array('so' => 2, 'tp' => 0.3, 'activettp' => true,  'trailing' => 0.2),
+    array('so' => 3, 'tp' => 0.4, 'activettp' => true,  'trailing' => 0.05),
+    array('so' => 4, 'tp' => 0.5, 'activettp' => true,  'trailing' => 0.1),
+    array('so' => 5, 'tp' => 0.6, 'activettp' => true,  'trailing' => 0.2),
+    array('so' => 6, 'tp' => 0.7, 'activettp' => false)
+  );
 
   $config['accounts'][] = $account;
   unset($account);

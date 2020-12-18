@@ -3,7 +3,7 @@
   /***
    * Class threecommasapi
    * @author   xyvran@nwan.de
-   * @version  0.5 20201216
+   * @version  0.6 20201218
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -53,7 +53,7 @@
     }
 
     function DebugOutput($data, $level = 0) {
-      if ($this->debug > $level) {
+      if ($this->debug >= $level) {
         printf("%s - %s\n", date("Y-m-d H:i:s"), $data);
       }
     }
@@ -240,6 +240,40 @@
       assert($aDeal['id'] <= 0);
       // Panic sell deal (Permission: BOTS_WRITE, Security: SIGNED)
       return($this->get(sprintf("/ver1/deals/%s/panic_sell", $aDeal['id']), 'POST'));
+    }
+
+    function DynamicSafetyOrders($aDeal, $aDynamicSafetyOrdersConfigs) {
+      assert(!isset($aDeal));
+      assert(!isset($aDynamicSafetyOrdersConfigs));
+
+      $activeConfig = null;
+      foreach ($aDynamicSafetyOrdersConfigs as $DynamicSafetyOrdersConfig) {
+        if ($DynamicSafetyOrdersConfig['so'] == $aDeal['completed_safety_orders_count']) {
+          $activeConfig = $DynamicSafetyOrdersConfig;
+          break;
+        }
+      }
+      if (isset($activeConfig)) {
+        $newdealoptions = array();
+        if ($aDeal['take_profit'] != $activeConfig['tp']) {
+          $newdealoptions['take_profit'] = $activeConfig['tp'];
+        }
+        if ($aDeal['trailing_enabled'] != $activeConfig['activettp']) {
+          $newdealoptions['trailing_enabled'] = $activeConfig['activettp'];
+        }
+        if ($aDeal['trailing_deviation'] != $activeConfig['trailing']) {
+          $newdealoptions['trailing_deviation'] = $activeConfig['trailing'];
+        }
+        if (count($newdealoptions) > 0) {
+          $newdealoptions['deal_id'] = $aDeal['id'];
+          $this->DebugOutput(print_r($aDeal, true), 9);
+          $this->DebugOutput(print_r($newdealoptions, true), 9);
+
+          // Update deal (Permission: BOTS_WRITE, Security: SIGNED)
+          return($this->postv2(sprintf("/ver1/deals/%s/update_deal", $aDeal['id']), $newdealoptions, 'PATCH'));
+        }
+      }
+      return null;
     }
 
     function getAccountData($account_id) {

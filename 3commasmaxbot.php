@@ -3,7 +3,7 @@
   /***
    * 3commas max bot per Account
    * @author   xyvran@nwan.de
-   * @version  0.5 20201216
+   * @version  0.6 20201218
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -104,16 +104,34 @@
           $activedeal = $commas->getActiveDealFromBot($bot, $deals);
           if (isset($activedeal)) {
             $commas->DebugOutput(sprintf('[%s] Panic sell check deal id %d...', $account['name'], $activedeal['id']), 2);
-            if ($activedeal['active_safety_orders_count'] == 0
+            if ($activedeal['current_active_safety_orders_count'] == 0
               && $activedeal['max_safety_orders'] > $activedeal['completed_safety_orders_count']
               && $activedeal['status'] == 'bought') {
               $commas->DebugOutput(sprintf('[%s] Panic sell deal id: %d  bot id: %d', $account['name'], $activedeal['id'], $bot['id']), 1);
+              $commas->DebugOutput(print_r($activedeal, true), 9);
               $commas->DealPanicSell($activedeal);
             }
           }
         }
       }
 
+      // Dynamic Safety Orders
+      if (isset($account['dynamicsafetyorders']) && is_array($account['dynamicsafetyorders'])) {
+        if (!is_blacklisted($bot, $botblacklist)) {
+          $activedeal = $commas->getActiveDealFromBot($bot, $deals);
+          if (isset($activedeal)) {
+            $commas->DebugOutput(sprintf('[%s] Dynamic safety orders check deal id %d...', $account['name'], $activedeal['id']), 2);
+            $dynamicsafetyorder = $commas->DynamicSafetyOrders($activedeal, $account['dynamicsafetyorders']);
+            if (isset($dynamicsafetyorder)) {
+              $commas->DebugOutput(sprintf('[%s] Dynamic safety orders changed on deal id: %d  bot id: %d  TTP %s: %s(%s) ',
+                $account['name'], $activedeal['id'], $bot['id'], ($dynamicsafetyorder['trailing_enabled']? 'on':'off)'), $dynamicsafetyorder['take_profit'], $dynamicsafetyorder['trailing_deviation']
+                ), 1);
+              $commas->DebugOutput(print_r($activedeal, true), 9);
+              $commas->DebugOutput(print_r($dynamicsafetyorder, true), 8);
+            }
+          }
+        }
+      }
     }
 
     $max_active_deals = 999;
