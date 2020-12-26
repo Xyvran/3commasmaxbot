@@ -2,7 +2,7 @@
   /***
    * 3commas config
    * @author   xyvran@nwan.de
-   * @version  0.6 20201218
+   * @version  0.7 20201227
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
@@ -50,6 +50,8 @@
   // Error Message from 3commas:
   // The bot was unable to close the deal as the price moved below the profitable area too fast. The trailing has been disabled and the deal reverted to the initial status, now it is waiting for trailing activation condition again.
   $account['panicsellaftermissedtrailing'] = false;
+  // Sleep a few seconds and re-check to make sure we don't close a new deal that hasn't placed safety orders yet.
+  $account['panicsellaftermissedtrailing_timer'] = 15;
   // Dynamic Safety Orders
   $account['dynamicsafetyorders'] = array(
     array('so' => 0, 'tp' => 0.1, 'activettp' => true,  'trailing' => 0.05),

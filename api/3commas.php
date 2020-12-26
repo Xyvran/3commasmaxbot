@@ -3,7 +3,7 @@
   /***
    * Class threecommasapi
    * @author   xyvran@nwan.de
-   * @version  0.6 20201218
+   * @version  0.7 20201227
    * @donation BTC      1N2HJBrcjRgRh1e3hEuG1s3JT4TwHENvoE
    *           USDT     TFTkHHAwZqy6XemHWXtALWFgPWv8GyuGFA (TRC20)
    *           BTC/USDT 0xf02490bad03a17753b38c3e8acccf8a70f4fcd22 (ERC20)
